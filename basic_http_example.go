@@ -11,6 +11,10 @@ type helloWorldResponse struct {
 	Message string `json:"message"`
 }
 
+type helloWorldRequest struct {
+	Name string `json:"name"`
+}
+
 func main() {
 	port := 8181
 
@@ -21,7 +25,19 @@ func main() {
 }
 
 func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	response := helloWorldResponse{Message: "HelloWorld"}
+
+	var request helloWorldRequest
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&request)
+
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	response := helloWorldResponse{Message: "Hello " + request.Name}
+
 	encoder := json.NewEncoder(w)
-	encoder.Encode(&response)
+	encoder.Encode(response)
 }
